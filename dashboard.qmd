@@ -1,0 +1,311 @@
+---
+title: "논문 지도 캠프 ❄️"
+format: 
+  dashboard:
+     nav-buttons:
+      - icon: github
+        href: https://www.mentimeter.com/app/presentation/al5jn2sec8vb3qv8c7hyearot7kr2tpp/ogwd9p4pt2k4/edit
+        aria-label: GitHub
+      - icon: gitlab
+        href: https://www.knowledgepen.com/
+        aria-label: 지식펜
+logo: images/logo.png
+fig-width: 10
+fig-asp: 0.3
+theme: 
+  light: [sandstone, themes/dashboard.scss]
+  dark: [sandstone, themes/dashboard-dark.scss]
+params:
+  today: "2023-12-10"
+
+resources:
+  - pins-board  
+---
+
+```{r}
+#| label: load-packages
+#| message: false
+
+library(tidyverse)
+library(DT)
+library(leaflet)
+
+theme_set(theme_minimal(base_size = 24, base_family = "Atkinson Hyperlegible"))
+```
+
+```{r}
+#| label: load-data
+#| message: false
+
+meribel <- read_csv("data/Meribel.csv")
+stations <- read_csv("data/stations.csv")
+```
+
+```{r}
+#| label: set-inputs
+
+time_period <- paste(params$month, params$year)
+today <- as.Date(params$today)
+```
+
+#  {.sidebar}
+
+This dashboard displays an overview of the thesis guidance process.:
+
+**강사: [Choi Pro](https://scholar.google.co.kr/citations?user=RUPcxioAAAAJ&hl=ko)**
+
+**Tools : R, Quarto**
+
+<br>
+
+::: {.callout-note collapse="true"}
+## 강사 프로필
+
+디스플레이 전문가 \n응용물리/화학/플라즈마/유기재료/광학/기기분석/시뮬레이션
+
+|                      |                    |
+|:---------------------|:-------------------|
+| **이 력**            | **내용**           |
+| 서울대학교           | 응용화학           |
+| 고려대학교 석사/박사 | 응용물리           |
+| 경 력                |                    |
+| LCD                  | 유기재료, 광학     |
+| OLED                 | Dry Etch, 포토재료 |
+| Micro LED            | Prining 공정, 재료 |
+| 빅데이터 분석기사    | R                  |
+| Simulation           | Flexpde            |
+
+Source: [CV](https://github.com/waterfirst/cv).
+:::
+
+# Introduction
+
+## Row {height="40%"}
+
+```{r }
+library(ggpubr)
+library(dplyr)
+options(warn=-1) # 경고메세지 무시하기
+
+data("ToothGrowth") # 예제 데이터 불러오기
+
+set.seed(1234)
+wdata = data.frame(
+  sex = factor(rep(c("F", "M"), each=200)),
+  weight = c(rnorm(200, 55), rnorm(200, 58)))
+
+
+a1 <- ggdensity(wdata, x = "weight",
+                add = "mean", rug = TRUE, # Density plot with mean lines and marginal rug
+                color = "sex", fill = "sex",  # Change outline and fill colors by groups ("sex")
+                palette = c("#00AFBB", "#E7B800")) # Use custom palette
+
+a2 <- gghistogram(wdata, x = "weight",
+                  add = "mean", rug = TRUE,
+                  color = "sex", fill = "sex",
+                  palette = c("#00AFBB", "#E7B800"))
+
+a3 <- ggdensity(wdata, x = "weight",
+                add = "mean", rug = TRUE,
+                fill = "lightgray")
+
+# Combine histogram and density plots
+a4 <-  gghistogram(wdata, x = "weight",
+                   add = "mean", rug = FALSE,
+                   fill = "sex", palette = c("#00AFBB", "#E7B800"),
+                   add_density = TRUE)
+
+
+
+```
+
+::: {#fig-elephant}
+[![](./images/process.png)](https://waterfirst.quarto.pub/how_to_write_paper/)
+:::
+
+## Row {height="60%"}
+
+### Column {width="40%"}
+
+<div>
+
+[![](./images/tidyverse.jpg)](https://waterfirst.quarto.pub/sci_graph/)
+
+</div>
+
+### Column {width="40%"}
+
+<div>
+
+[![](./images/quarto-academic.jpg)](https://waterfirst.quarto.pub/manuscript/)
+
+</div>
+
+# Visualization
+
+## Row {height="50%"}
+
+### Column {width="40%"}
+
+```{r}
+#| title: Histogram
+
+# 한페이지에 넣기
+ggarrange(a1, a2, a3 , a4,
+          labels = c("A", "B", "C", "D"),
+          ncol = 2, nrow = 2)
+
+```
+
+### Column {width="40%"}
+
+```{r}
+#| title: Bar Graph
+
+
+# example Data
+df <- data.frame(dose=c("D0.5", "D1", "D2"),
+                 len=c(4.2, 10, 29.5))
+df2 <- data.frame(supp=rep(c("VC", "OJ"), each=3),
+                  dose=rep(c("D0.5", "D1", "D2"),2),
+                  len=c(6.8, 15, 33, 4.2, 10, 29.5))
+df3 <- ToothGrowth
+
+# Change position: Interleaved (dodged) bar plot
+p1 <- ggbarplot(df2, "dose", "len",
+                fill = "supp", color = "supp", palette = "Paired", #하늘색, 청색
+                position = position_dodge(0.8))
+
+# Change fill and outline color add labels inside bars
+p2 <- ggbarplot(df, "dose", "len",
+                fill = "dose", color = "dose",
+                palette = c("#00AFBB", "#E7B800", "#FC4E07"), #청, 황, 적
+                label = TRUE, lab.pos = "in", lab.col = "white")
+
+# Add jitter points and errors (mean_se)
+p3 <- ggbarplot(df3, x = "dose", y = "len",
+                add = c("mean_se", "jitter"))
+
+# Multiple groups with error bars and jitter point
+p4 <- ggbarplot(df3, x = "dose", y = "len", color = "supp",
+                add = "mean_se", palette = c("#00AFBB", "#E7B800"),
+                position = position_dodge(0.8))
+
+ggarrange(p1, p2, p3, p4,
+          labels = c("A", "B", "C", "D"),
+          ncol = 2, nrow = 2)
+
+```
+
+## Row {height="50%"}
+
+### Column {width="40%"}
+
+```{r}
+#| title: Density Graph
+# Density plot (밀도 그래프)
+density.p <- ggdensity(iris, x = "Sepal.Length",
+                       fill = "Species", palette = "jco")
+# Text plot
+text <- paste("Iris data set gives the measurements in cm",
+              "of the variables sepal length and width",
+              "and petal length and width, respectively,",
+              "for 50 flowers from each of 3 species of iris.",
+              "The species are Iris setosa, versicolor, and virginica.", sep = " ")
+text.p <- ggparagraph(text, face = "italic", size = 12)
+
+# Arrange the plots on the same page
+ggarrange(density.p, text.p,
+          ncol = 1, nrow = 2,
+          heights = c(1, 0.3))
+```
+
+### Column {width="40%"}
+
+```{r}
+#| title: Scatter Plot
+
+
+# Load data
+data("mtcars")
+df <- mtcars
+df$cyl <- as.factor(df$cyl)
+
+# Scatter plot with correlation coefficient
+sp <- ggscatter(df, x = "wt", y = "mpg",
+                add = "reg.line",  # Add regressin line
+                conf.int = TRUE) # Add confidence interval
+# Add correlation coefficient
+p1 <- sp + stat_cor(method = "pearson", label.x = 3, label.y = 30)
+# Color by groups and facet
+sp <- ggscatter(df, x = "wt", y = "mpg",
+                color = "cyl", palette = "jco",
+                add = "reg.line", conf.int = TRUE)
+p2 <- sp + stat_cor(aes(color = cyl), label.x = 3)
+# Scatter plot with ellipses and group mean points
+p3 <- ggscatter(df, x = "wt", y = "mpg",
+                color = "cyl", shape = "cyl",
+                mean.point = TRUE, ellipse = TRUE)+
+  stat_stars(aes(color = cyl))
+
+ggarrange(p1, p2, p3,
+          labels = c("A", "B", "C"),
+          ncol = 2, nrow = 2)
+```
+
+# Wrting Paper
+
+## Row {height="50%"}
+
+### Column {width="40%"}
+
+```{r}
+#| label: tbl-simple
+#| tbl-cap: Caption centered above table
+#| echo: true
+knitr::kable(head(mtcars)[,1:4])
+```
+
+### Column {width="40%"}
+
+![저널 종류별 template 있음](./images/journal.jpg)
+
+## Row {height="50%"}
+
+### Column {width="40%"}
+
+```{r}
+#| label:  fig-meaningless
+#| fig-cap: A meaningless scatterplot
+#| echo: false
+plot(runif(25), runif(25))
+```
+
+### Column {width="40%"}
+
+Equations
+
+Here is an equation: $$ 
+  f_{X}(x) = \left(\frac{\alpha}{\beta}\right)
+  \left(\frac{x}{\beta}\right)^{\alpha-1}
+  e^{-\left(\frac{x}{\beta}\right)^{\alpha}}; 
+  \alpha,\beta,x > 0 .
+$$ Inline equations work as well: $$\sum_{i = 2}^\infty\{\alpha_i^\beta\}$$
+
+# Paper
+
+![paper예제](./images/paper1.jpg) ![](./images/paper2.jpg) ![](./images/paper3.jpg)
+
+# 대학원생 논문 지도
+
+1.  [서유진](https://waterfirst.quarto.pub/yujin-seo/)
+
+2.  [양지원](https://waterfirst.quarto.pub/yang_jiwon/)
+
+3.  [박소윤](https://waterfirst.quarto.pub/soyoon_park/)
+
+4.  [김명민](https://waterfirst.quarto.pub/myungmin_kim/)
+
+5.  [장한빛](https://waterfirst.quarto.pub/hanbit-jang/)
+
+6.  [양효근](https://waterfirst.quarto.pub/hyogeun_yang/)
